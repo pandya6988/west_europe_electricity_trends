@@ -2,6 +2,8 @@ import streamlit as st
 import plotly.express as px
 import pandas as pd
 import seaborn as sns
+import numpy as np
+from scipy.stats import linregress
 import matplotlib.pyplot as plt
 from src import data_global_preprocessing as dgp
 
@@ -40,8 +42,8 @@ if vis_type == "Global":
 
     df_new = get_df_new(df_global, window, threshold)
     fig2 = px.line(df_new, x="date",
-                   y=["supply_moving_avg", "demand_moving_avg", "price"],
-                   hover_name="date", title="Trends").update_xaxes(dtick="M12", tickformat="%Y")
+                   y=["supply_moving_avg", "demand_moving_avg", "price_moving_avg"],
+                   hover_name="date", title="Data Moving Average Value").update_xaxes(dtick="M12", tickformat="%Y")
 
     df_new.set_index("date", inplace=True)
     df_new["hour"] = df_new.index.hour
@@ -65,6 +67,24 @@ if vis_type == "Global":
     col3.metric(f"Supply avg from {moving_avg_year}", f"{round(df_new[df_new.index >f'31-12-{moving_avg_year}']['supply'].mean(), 2)}MW",
                 f"{round(supply_mean_diff, 2)}MW")
     st.plotly_chart(fig2, use_container_width=True)
+
+    st.markdown("### Trends")
+    col1, col2 = st.columns(2)
+    x = col1.selectbox("X-axis", options=["supply_moving_avg", "demand_moving_avg", "price_moving_avg"])
+    x_name = x
+    x = df_new[df_new[x] >0 ][x] .to_numpy()
+    y = col2.selectbox("Y-axis", options=["price_moving_avg", "supply_moving_avg", "demand_moving_avg"])
+    y_name = y
+    y = df_new[df_new[y] >0 ][y] .to_numpy()
+    #slope, intercept, r_value, p_value, std_err = linregress(df_new[x].to_numpy(), df_new[y].to_numpy())
+    z = np.polyfit(x, y, 1)
+    p = np.poly1d(z)
+    fig4, ax = plt.subplots(figsize=(20, 8))
+    ax.plot(x, p(x), 'r', label='fitted line', c="b")
+    ax.set_xlabel(x_name)
+    ax.set_ylabel(y_name)
+    ax.set_title("Tred plot")
+    st.pyplot(fig4, use_container_width=True)
 
     st.markdown("### Detailed graph")
 
