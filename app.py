@@ -1,6 +1,8 @@
 import streamlit as st
 import plotly.express as px
 import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
 from src import data_global_preprocessing as dgp
 
 st.set_page_config(layout='wide', initial_sidebar_state='expanded')
@@ -24,12 +26,12 @@ if vis_type == "Global":
                           min_value=1, max_value=5, value=4)
     moving_avg_year = st.sidebar.number_input(label="Metrics year", min_value=2015, max_value=2023, value=2021)
 
-    df,_ = dgp.get_fig_for_moving_window(df_global=df_global ,window=window)
+    df = dgp.get_fig_for_moving_window(df_global=df_global ,window=window)
 
     df_new = dgp.remove_outliers_zscore(df, threshold=threshold)
     fig2 = px.line(df, x="date",
-                       y=["supply_moving_avg", "demand_moving_avg", "price"],
-                       hover_name="date", title="Trends").update_xaxes(dtick="M12",  tickformat="%Y" )
+                    y=["supply_moving_avg", "demand_moving_avg", "price"],
+                    hover_name="date", title="Trends").update_xaxes(dtick="M12",  tickformat="%Y" )
 
     df_new.set_index("date", inplace=True)
     df_new["hour"] = df_new.index.hour
@@ -58,7 +60,10 @@ if vis_type == "Global":
 
     col1, col2 = st.columns(2)
     time = col1.selectbox(label="Time parameter", options=["hour", "dayofweek", "quarter", "month", "dayofyear"])
-
     feature = col2.selectbox("select the feature", ["demand", "supply", "price"] )
-    fig2 = px.box(df_new, x=time, y=feature, title=f"{time} → {feature} box plot")
-    st.plotly_chart(fig2, use_container_width=True)
+
+    fig, ax = plt.subplots(figsize=(20,8))
+    sns.boxplot(df_new, x=time, y=feature, palette="Blues")
+    ax.set_title(f"{time} X {feature}")
+
+    st.pyplot(fig, use_container_width=True)

@@ -14,9 +14,9 @@ def get_fig_for_moving_window(df_global=df_global, window=365):
     df_global[f"supply_moving_avg"] = df_global["supply"].rolling(window=window).mean()
     df_global[f"price_moving_avg"] = df_global["price"].rolling(window=window).mean()
 
-    fig = px.line(df_global, x="date", y=["supply_moving_avg", "demand_moving_avg", "price"],
-                  hover_name="date", title="Global trends").update_xaxes(dtick="M12", tickformat="%Y")
-    return df_global, fig
+    #fig = px.line(df_global, x="date", y=["supply_moving_avg", "demand_moving_avg", "price"],
+    #              hover_name="date", title="Global trends").update_xaxes(dtick="M12", tickformat="%Y")
+    return df_global
 
 
 def remove_outliers_zscore(df=df_global, series="price", threshold=4):
