@@ -15,7 +15,19 @@ st.sidebar.header("control panel")
 with st.sidebar:
     vis_type = st.selectbox(label="Visualization type", options=["Global", "By country"])
 
-df_global = pd.read_csv("west_europe_electricity_data.csv")
+@st.cache_data
+def load_data():
+    return pd.read_csv("west_europe_electricity_data.csv")
+
+df_global = load_data()
+
+@st.cache_data
+def get_df_new(df, window, threshold):
+    df = dgp.get_fig_for_moving_window(df_global=df ,window=window)
+
+    df = dgp.remove_outliers_zscore(df, threshold=threshold)
+    return df
+
 if vis_type == "Global":
     df_global["date"] = pd.to_datetime(df_global["date"])
 
@@ -26,12 +38,10 @@ if vis_type == "Global":
                           min_value=1, max_value=5, value=4)
     moving_avg_year = st.sidebar.number_input(label="Metrics year", min_value=2015, max_value=2023, value=2021)
 
-    df = dgp.get_fig_for_moving_window(df_global=df_global ,window=window)
-
-    df_new = dgp.remove_outliers_zscore(df, threshold=threshold)
-    fig2 = px.line(df, x="date",
-                    y=["supply_moving_avg", "demand_moving_avg", "price"],
-                    hover_name="date", title="Trends").update_xaxes(dtick="M12",  tickformat="%Y" )
+    df_new = get_df_new(df_global, window, threshold)
+    fig2 = px.line(df_new, x="date",
+                   y=["supply_moving_avg", "demand_moving_avg", "price"],
+                   hover_name="date", title="Trends").update_xaxes(dtick="M12", tickformat="%Y")
 
     df_new.set_index("date", inplace=True)
     df_new["hour"] = df_new.index.hour
