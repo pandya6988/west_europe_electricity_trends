@@ -69,22 +69,33 @@ if vis_type == "Global":
     st.plotly_chart(fig2, use_container_width=True)
 
     st.markdown("### Trends")
-    col1, col2 = st.columns(2)
-    x = col1.selectbox("X-axis", options=["supply_moving_avg", "demand_moving_avg", "price_moving_avg"])
-    x_name = x
-    x = df_new[df_new[x] >0 ][x] .to_numpy()
-    y = col2.selectbox("Y-axis", options=["price_moving_avg", "supply_moving_avg", "demand_moving_avg"])
-    y_name = y
-    y = df_new[df_new[y] >0 ][y] .to_numpy()
-    #slope, intercept, r_value, p_value, std_err = linregress(df_new[x].to_numpy(), df_new[y].to_numpy())
-    z = np.polyfit(x, y, 1)
-    p = np.poly1d(z)
-    fig4, ax = plt.subplots(figsize=(20, 8))
-    ax.plot(x, p(x), 'r', label='fitted line', c="b")
-    ax.set_xlabel(x_name)
-    ax.set_ylabel(y_name)
-    ax.set_title("Tred plot")
-    st.pyplot(fig4, use_container_width=True)
+    col_plot, col_heat_map = st.columns(2)
+    with col_plot:
+        col1, col2 = st.columns(2)
+        x = col1.selectbox("X-axis", options=["supply_moving_avg", "demand_moving_avg", "price_moving_avg"])
+        x_name = x
+        x = df_new[df_new[x] >0 ][x] .to_numpy()
+        y = col2.selectbox("Y-axis", options=["price_moving_avg", "supply_moving_avg", "demand_moving_avg"])
+        y_name = y
+        y = df_new[df_new[y] >0 ][y] .to_numpy()
+        #slope, intercept, r_value, p_value, std_err = linregress(df_new[x].to_numpy(), df_new[y].to_numpy())
+        z = np.polyfit(x, y, 1)
+        p = np.poly1d(z)
+        fig4, ax = plt.subplots(figsize=(20, 8))
+        ax.plot(x, p(x), 'r', label='fitted line', c="b")
+        ax.set_xlabel(x_name)
+        ax.set_ylabel(y_name)
+        ax.set_title("Tred plot")
+        st.pyplot(fig4, use_container_width=True)
+    with col_heat_map:
+        df_new["demand_moving_avg_minus_supply_moving_avg"] = df_new["demand_moving_avg"] - df_new["supply_moving_avg"]
+        important_features = ["demand_moving_avg", "supply_moving_avg", "price_moving_avg", "hour", "dayofweek",
+                              "month", "dayofyear", "quarter", "demand_moving_avg_minus_supply_moving_avg"]
+        correlation_matrix = np.corrcoef(df_new[important_features].values.T)
+        fig, ax = plt.subplots(figsize=(10,10))
+        sns.heatmap(correlation_matrix, annot=True, fmt=".2f", cmap='coolwarm',
+                    xticklabels=df_new[important_features].columns, yticklabels=df_new[important_features].columns)
+        st.pyplot(fig)
 
     st.markdown("### Detailed graph")
 
