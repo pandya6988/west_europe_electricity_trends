@@ -58,6 +58,7 @@ if vis_type == "Global":
 
     col1, col2 = st.columns(2)
     time = col1.selectbox(label="Time parameter", options=["hour", "dayofweek", "quarter", "month", "dayofyear"])
-    feature = col2.selectbox("select the feature", ["demand", "supply", "price"])
+
+    feature = col2.selectbox("select the feature", ["demand", "supply", "price"] )
     fig2 = px.box(df_new, x=time, y=feature, title=f"{time} → {feature} box plot")
     st.plotly_chart(fig2, use_container_width=True)
