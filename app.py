@@ -59,11 +59,11 @@ if vis_type == "Global":
     demand_mean_diff = df_new[df_new.index > f'31-12-{moving_avg_year}']['demand'].mean() - df_new[df_new.index <f'31-12-{moving_avg_year}'][
         'demand'].mean()
     col2.metric(f"Demand avg from {moving_avg_year}", f"{round(df_new[df_new.index >f'31-12-{moving_avg_year}']['demand'].mean(), 2)}MW",
-                f"{round(demand_mean_diff, 2)}€")
+                f"{round(demand_mean_diff, 2)}MW")
     supply_mean_diff = df_new[df_new.index >f'31-12-{moving_avg_year}']['supply'].mean() - df_new[df_new.index <f'31-12-{moving_avg_year}'][
         'supply'].mean()
     col3.metric(f"Supply avg from {moving_avg_year}", f"{round(df_new[df_new.index >f'31-12-{moving_avg_year}']['supply'].mean(), 2)}MW",
-                f"{round(supply_mean_diff, 2)}€")
+                f"{round(supply_mean_diff, 2)}MW")
     st.plotly_chart(fig2, use_container_width=True)
 
     st.markdown("### Detailed graph")
