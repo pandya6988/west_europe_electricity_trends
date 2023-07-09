@@ -97,3 +97,14 @@ if vis_type == "Global":
     ax.set_title(f"{time} X {feature}")
 
     st.pyplot(fig, use_container_width=True)
+
+if vis_type == "By country":
+    df_global["date"] = pd.to_datetime(df_global["date"])
+    window = st.sidebar.number_input("Moving window", 2, 1000, step=1, value=365)
+    threshold = st.sidebar.slider(label="zscore threshold to detect outliers",
+                                  min_value=1, max_value=5, value=3)
+    df_new = get_df_new(df_global, window, threshold)
+    fig = px.line(df_new, x="date",
+                   y=["supply_moving_avg", "demand_moving_avg", "price"], color="country",
+                   hover_name="date", title="Data Moving Average Value").update_xaxes(dtick="M12", tickformat="%Y")
+    st.plotly_chart(fig, use_container_width=True)
