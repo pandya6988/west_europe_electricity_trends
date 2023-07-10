@@ -72,7 +72,7 @@ if vis_type == "Global":
                        hover_name="date", title="Data Moving Average Value").update_xaxes(dtick="M12", tickformat="%Y")
         st.plotly_chart(fig2, use_container_width=True)
     else:
-        st.pyplot( dgp.moving_avg_plt(df_new) )
+        st.pyplot( dgp.moving_avg_plt(df_new_m) )
 
     st.markdown("### Trends")
     col_plot, col_heat_map = st.columns(2)
