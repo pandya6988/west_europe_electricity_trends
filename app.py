@@ -25,9 +25,8 @@ df_global = load_data()
 
 @st.cache_data
 def get_df_new(df, window, threshold):
-    df = dgp.get_fig_for_moving_window(df_global=df ,window=window)
-
     df = dgp.remove_outliers_zscore(df, threshold=threshold)
+    df = dgp.get_fig_for_moving_window(df_global=df ,window=window)
     return df
 
 if vis_type == "Global":
