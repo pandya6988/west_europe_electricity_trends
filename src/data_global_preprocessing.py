@@ -1,6 +1,7 @@
 import pandas as pd
 import plotly.express as px
 import numpy as np
+import matplotlib.pyplot as plt
 import streamlit as st
 from scipy.stats import zscore
 
@@ -33,3 +34,28 @@ def remove_outliers_zscore(df=df_global, series="price", threshold=4):
         else:
             last_valid = value
     return df
+
+def moving_avg_plt(df:pd.DataFrame):
+
+    # Plot time series for demand, supply, and price
+    plt.figure(figsize=(15, 10))
+
+    plt.subplot(3, 1, 1)
+    plt.plot(df['demand_moving_avg'], label='demand_moving_avg', color='blue')
+    plt.title('Electricity Demand')
+    plt.ylabel('demand_moving_avg')
+
+    plt.subplot(3, 1, 2)
+    plt.plot(df['supply_moving_avg'], label='Supply', color='green')
+    plt.title('Electricity Supply')
+    plt.ylabel('supply_moving_avg')
+
+    plt.subplot(3, 1, 3)
+    plt.plot(df['price_moving_avg'], label='price_moving_avg', color='red')
+    plt.title('Electricity Price')
+    plt.ylabel('price_moving_avg')
+
+    # Automatically adjust subplot parameters to give specified padding
+    plt.tight_layout()
+
+    plt.show()

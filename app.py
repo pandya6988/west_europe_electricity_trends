@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 from src import data_global_preprocessing as dgp
 
 st.set_page_config(layout='wide', initial_sidebar_state='expanded')
+st.set_option('deprecation.showPyplotGlobalUse', False)
 
 with open('style.css') as f:
     st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
@@ -40,32 +41,38 @@ if vis_type == "Global":
     moving_avg_year = st.sidebar.number_input(label="Metrics year", min_value=2015, max_value=2023, value=2021)
 
     df_new = get_df_new(df_global, window, threshold)
-    fig2 = px.line(df_new, x="date",
-                   y=["supply_moving_avg", "demand_moving_avg", "price_moving_avg"],
-                   hover_name="date", title="Data Moving Average Value").update_xaxes(dtick="M12", tickformat="%Y")
 
-    df_new.set_index("date", inplace=True)
-    df_new["hour"] = df_new.index.hour
-    df_new["dayofweek"] = df_new.index.dayofweek
-    df_new["quarter"] = df_new.index.quarter
-    df_new["month"] = df_new.index.month
-    df_new["dayofyear"] = df_new.index.dayofyear
+    df_new_m = df_new.copy()
+    df_new_m.set_index("date", inplace=True)
+    df_new_m["hour"] = df_new_m.index.hour
+    df_new_m["dayofweek"] = df_new_m.index.dayofweek
+    df_new_m["quarter"] = df_new_m.index.quarter
+    df_new_m["month"] = df_new_m.index.month
+    df_new_m["dayofyear"] = df_new_m.index.dayofyear
 
     st.markdown('### Metrics')
     col1, col2, col3 = st.columns(3)
 
-    price_mean_diff = df_new[df_new.index>f'31-12-{moving_avg_year}']['price'].mean() - df_new[df_new.index<f'31-12-{moving_avg_year}']['price'].mean()
-    col1.metric(f"Price avg from {moving_avg_year}", f"{round(df_new[df_new.index>f'31-12-{moving_avg_year}']['price'].mean(), 2)}€", f"{round(price_mean_diff,2)}€")
+    price_mean_diff = df_new_m[df_new_m.index>f'31-12-{moving_avg_year}']['price'].mean() - df_new_m[df_new_m.index<f'31-12-{moving_avg_year}']['price'].mean()
+    col1.metric(f"Price moving avg from {moving_avg_year}", f"{round(df_new_m[df_new_m.index>f'31-12-{moving_avg_year}']['price'].mean(), 2)}€", f"{round(price_mean_diff,2)}€")
 
-    demand_mean_diff = df_new[df_new.index > f'31-12-{moving_avg_year}']['demand'].mean() - df_new[df_new.index <f'31-12-{moving_avg_year}'][
+    demand_mean_diff = df_new_m[df_new_m.index > f'31-12-{moving_avg_year}']['demand'].mean() - df_new_m[df_new_m.index <f'31-12-{moving_avg_year}'][
         'demand'].mean()
-    col2.metric(f"Demand avg from {moving_avg_year}", f"{round(df_new[df_new.index >f'31-12-{moving_avg_year}']['demand'].mean(), 2)}MW",
+    col2.metric(f"Demand moving avg from {moving_avg_year}", f"{round(df_new_m[df_new_m.index >f'31-12-{moving_avg_year}']['demand'].mean(), 2)}MW",
                 f"{round(demand_mean_diff, 2)}MW")
-    supply_mean_diff = df_new[df_new.index >f'31-12-{moving_avg_year}']['supply'].mean() - df_new[df_new.index <f'31-12-{moving_avg_year}'][
+    supply_mean_diff = df_new_m[df_new_m.index >f'31-12-{moving_avg_year}']['supply'].mean() - df_new_m[df_new_m.index <f'31-12-{moving_avg_year}'][
         'supply'].mean()
-    col3.metric(f"Supply avg from {moving_avg_year}", f"{round(df_new[df_new.index >f'31-12-{moving_avg_year}']['supply'].mean(), 2)}MW",
+    col3.metric(f"Supply moving avg from {moving_avg_year}", f"{round(df_new_m[df_new_m.index >f'31-12-{moving_avg_year}']['supply'].mean(), 2)}MW",
                 f"{round(supply_mean_diff, 2)}MW")
-    st.plotly_chart(fig2, use_container_width=True)
+    show_plotly = st.checkbox("Show plotly", value=False)
+    #st.plotly_chart(fig2, use_container_width=True)
+    if show_plotly:
+        fig2 = px.line(df_new, x="date",
+                       y=["supply_moving_avg", "demand_moving_avg", "price_moving_avg"],
+                       hover_name="date", title="Data Moving Average Value").update_xaxes(dtick="M12", tickformat="%Y")
+        st.plotly_chart(fig2, use_container_width=True)
+    else:
+        st.pyplot( dgp.moving_avg_plt(df_new) )
 
     st.markdown("### Trends")
     col_plot, col_heat_map = st.columns(2)
@@ -87,13 +94,13 @@ if vis_type == "Global":
         ax.set_title("Tred plot")
         st.pyplot(fig4, use_container_width=True)
     with col_heat_map:
-        df_new["demand_moving_avg_minus_supply_moving_avg"] = df_new["demand_moving_avg"] - df_new["supply_moving_avg"]
+        df_new_m["demand_moving_avg_minus_supply_moving_avg"] = df_new_m["demand_moving_avg"] - df_new_m["supply_moving_avg"]
         important_features = ["demand_moving_avg", "supply_moving_avg", "price_moving_avg", "hour", "dayofweek",
                               "month", "dayofyear", "quarter", "demand_moving_avg_minus_supply_moving_avg"]
-        correlation_matrix = np.corrcoef(df_new[important_features].values.T)
+        correlation_matrix = np.corrcoef(df_new_m[important_features].values.T)
         fig, ax = plt.subplots(figsize=(10,10))
         sns.heatmap(correlation_matrix, annot=True, fmt=".2f", cmap='coolwarm',
-                    xticklabels=df_new[important_features].columns, yticklabels=df_new[important_features].columns)
+                    xticklabels=df_new_m[important_features].columns, yticklabels=df_new_m[important_features].columns)
         st.pyplot(fig)
 
     st.markdown("### Detailed graph")
@@ -103,7 +110,7 @@ if vis_type == "Global":
     feature = col2.selectbox("select the feature", ["demand", "supply", "price"] )
 
     fig, ax = plt.subplots(figsize=(20,8))
-    sns.boxplot(df_new, x=time, y=feature, palette="Blues")
+    sns.boxplot(df_new_m, x=time, y=feature, palette="Blues")
     ax.set_title(f"{time} X {feature}")
 
     st.pyplot(fig, use_container_width=True)
@@ -114,7 +121,30 @@ if vis_type == "By country":
     threshold = st.sidebar.slider(label="zscore threshold to detect outliers",
                                   min_value=1, max_value=5, value=3)
     df_new = get_df_new(df_global, window, threshold)
-    fig = px.line(df_new, x="date",
-                   y=["supply_moving_avg", "demand_moving_avg", "price"], color="country",
-                   hover_name="date", title="Data Moving Average Value").update_xaxes(dtick="M12", tickformat="%Y")
-    st.plotly_chart(fig, use_container_width=True)
+
+    #fig = px.line(df_new, x="date",
+    #               y=["supply_moving_avg", "demand_moving_avg", "price"], color="country",
+    #               hover_name="date", title="Data Moving Average Value").update_xaxes(dtick="M12", tickformat="%Y")
+    #st.plotly_chart(fig, use_container_width=True)
+    countries = df_global['country'].unique()
+    df_global["date"] = pd.to_datetime(df_global["date"])
+    df_global.set_index('date', inplace=True)
+    df_new1 = df_global.groupby('country').resample('D').mean()
+
+    fig, ax = plt.subplots(len(countries), 3, figsize=(18, 2.5 * len(countries)))
+
+    for i, country in enumerate(countries):
+        ax[i, 0].plot(df_new1.loc[country, 'demand'], color='blue')
+        ax[i, 0].set_title(f'Daily Electricity Demand in {country}')
+        ax[i, 0].set_ylabel('Demand')
+
+        ax[i, 1].plot(df_new1.loc[country, 'supply'], color='green')
+        ax[i, 1].set_title(f'Daily Electricity Supply in {country}')
+        ax[i, 1].set_ylabel('Supply')
+
+        ax[i, 2].plot(df_new1.loc[country, 'price'], color='red')
+        ax[i, 2].set_title(f'Daily Electricity Price in {country}')
+        ax[i, 2].set_ylabel('Price')
+
+    plt.tight_layout()
+    st.pyplot(fig)
